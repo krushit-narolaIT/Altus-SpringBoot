@@ -14,7 +14,7 @@ import java.util.Properties;
 public class EmailUtils {
 
     private static final String FROM_EMAIL = "indian.red.cross.in@gmail.com";
-    private static final String FROM_PASSWORD = "ohmqkqzffxfjsurk";
+    private static final String FROM_PASSWORD = "xaeijyccmcjrctnp";
 
     public static void sendEmail(String recipientEmail, String subject, String body) throws MessagingException {
         Properties properties = new Properties();

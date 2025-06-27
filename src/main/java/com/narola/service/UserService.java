@@ -1,16 +1,22 @@
 package com.narola.service;
 
-import com.krushit.common.Message;
-import com.krushit.common.exception.ApplicationException;
-import com.krushit.common.mapper.Mapper;
-import com.krushit.common.utils.EmailUtils;
-import com.krushit.dao.IUserDAO;
-import com.krushit.dto.UpdateUserDTO;
-import com.krushit.dto.UserDTO;
-import com.krushit.entity.User;
+import com.narola.common.Message;
+import com.narola.common.enums.RoleType;
+import com.narola.common.exception.ApplicationException;
+import com.narola.common.mapper.Mapper;
+import com.narola.common.utils.EmailUtils;
+import com.narola.dto.UpdateUserDTO;
+import com.narola.dto.UserDTO;
+import com.narola.entity.User;
+import com.narola.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,21 +25,25 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
     @Autowired
-    private IUserDAO userDAO;
+    private UserRepository userRepository;
     @Autowired
     private Mapper mapper;
 
     public void userBlocked(int userId) throws ApplicationException {
-        if (userDAO.isUserBlocked(userId)) {
+        if (userRepository.isUserBlocked(userId)) {
             throw new ApplicationException(Message.User.YOUR_ACCOUNT_IS_SUSPENDED_PLEASE_CONTACT_SUPPORT);
         }
     }
 
+    @Transactional
     public void registerUser(User user) throws ApplicationException {
-        if (userDAO.isUserExist(user.getEmailId(), user.getPhoneNo())) {
+        if (userRepository.existsByEmailIdOrPhoneNo(user.getEmailId(), user.getPhoneNo())) {
             throw new ApplicationException(Message.USER_ALREADY_EXIST);
         }
-        userDAO.registerUser(user);
+        User savedUser = userRepository.save(user);
+        String displayId = user.getRole().getRoleType() == RoleType.ROLE_CUSTOMER ? generateCustomerDisplayId(savedUser.getUserId()) : generateDriverDisplayId(savedUser.getUserId());
+        savedUser.setDisplayId(displayId);
+        userRepository.save(savedUser);
         try {
             EmailUtils.sendWelcomeEmailWithCSS(user.getEmailId(), user.getFirstName(), user.getLastName());
         } catch (MessagingException e) {
@@ -41,16 +51,26 @@ public class UserService {
         }
     }
 
+
+    private String generateCustomerDisplayId(int userId) {
+        String timestampPart = String.valueOf(System.currentTimeMillis() % 1000);
+        String userIdPart = String.format("%04d", userId % 10000);
+        return "US" + userIdPart + "R" + timestampPart;
+    }
+
+    private String generateDriverDisplayId(int userId) {
+        String timestampPart = String.valueOf(System.currentTimeMillis() % 1000);
+        String userIdPart = String.format("%04d", userId % 10000);
+        return "DR" + userIdPart + "V" + timestampPart;
+    }
+
     public UserDTO userLogin(String email, String password) throws ApplicationException {
-        if (!userDAO.isValidUser(email, password)) {
-            throw new ApplicationException(Message.User.PLEASE_ENTER_VALID_EMAIL_OR_PASS);
-        }
-        User user = userDAO.getUser(email, password);
+        User user = userRepository.findByEmailIdAndPassword(email, password).orElseThrow(() -> new ApplicationException(Message.User.PLEASE_ENTER_VALID_EMAIL_OR_PASS));
         return mapper.convertToDTO(user);
     }
 
     public List<UserDTO> getAllCustomers() throws ApplicationException {
-        List<User> users = userDAO.getAllCustomers();
+        List<User> users = userRepository.findAll();
         return users.stream()
                 .map(user -> new UserDTO.UserDTOBuilder()
                         .setUserId(user.getUserId())
@@ -75,12 +95,7 @@ public class UserService {
         if (userId == 0) {
             throw new ApplicationException("User ID is required");
         }
-        Optional<User> userOpt = userDAO.getUser(userId);
-        if (!userOpt.isPresent()) {
-            throw new ApplicationException(Message.User.USER_NOT_FOUND);
-        }
-        User existingUser = userOpt.get();
-
+        User existingUser = userRepository.findById(userId).orElseThrow(() -> new ApplicationException(Message.User.USER_NOT_FOUND));
         if (userDTO.getFirstName() != null) {
             existingUser.setFirstName(userDTO.getFirstName());
         }
@@ -93,46 +108,39 @@ public class UserService {
         if (userDTO.getEmailId() != null) {
             existingUser.setEmailId(userDTO.getEmailId());
         }
-        userDAO.updateUser(existingUser);
+        userRepository.save(existingUser);
     }
 
     public void updatePassword(String email, String oldPassword, String newPassword) throws ApplicationException {
-        Optional<User> userOpt = userDAO.getUserByEmail(email);
-        if (!userOpt.isPresent()) {
-            throw new ApplicationException(Message.User.USER_NOT_FOUND);
-        }
-        User user = userOpt.get();
+        User user = userRepository.findByEmailId(email).orElseThrow(() -> new ApplicationException(Message.User.USER_NOT_FOUND));
         if (!user.getPassword().equals(oldPassword)) {
             throw new ApplicationException(Message.User.PASSWORD_MISMATCHED);
         }
-        userDAO.updatePassword(email, newPassword);
+        userRepository.updatePasswordByEmailId(email, newPassword);
     }
 
     public void blockUser(int userId) throws ApplicationException {
-        if (!userDAO.isUserExist(userId)) {
+        if (!userRepository.existsById(userId)) {
             throw new ApplicationException(Message.User.USER_NOT_FOUND);
         }
-        userDAO.blockUser(userId);
+        userRepository.blockUserById(userId);
     }
 
     public String getUserNameById(int userId) throws ApplicationException {
-        return userDAO.getUserFullName(userId);
+        return userRepository.findFullNameByUserId(userId);
     }
 
     public String getUserDisplayIdById(int userId) throws ApplicationException {
-        return userDAO.getUserDisplayId(userId);
+        return userRepository.findDisplayIdByUserId(userId);
     }
 
-    public String getUserFullNameById(int userId) throws ApplicationException {
-        return userDAO.getUserFullName(userId);
-    }
 
-    public Optional<User> getUserDetails(int fromUserId) throws ApplicationException {
-        return userDAO.getUser(fromUserId);
+    public User getUserDetails(int fromUserId) throws ApplicationException {
+        return userRepository.findById(fromUserId).orElseThrow(() -> new ApplicationException(Message.User.USER_NOT_FOUND));
     }
 
     public List<UserDTO> getUsersWithLessRatingAndReviews(int ratingThreshold, int reviewCountThreshold) throws ApplicationException {
-        List<User> users = userDAO.getUsersByLowRatingAndReviewCount(ratingThreshold, reviewCountThreshold);
+        List<User> users = userRepository.findByLowRatingAndReviewCount(ratingThreshold, reviewCountThreshold);
         return users.stream().map(user -> new UserDTO.UserDTOBuilder()
                 .setUserId(user.getUserId())
                 .setFirstName(user.getFirstName())
@@ -144,31 +152,46 @@ public class UserService {
         ).collect(Collectors.toList());
     }
 
-
     public List<User> getCustomersByOffsetAndLimit(int offset, int limit) throws ApplicationException {
-        return userDAO.getUsersByPagination(offset, limit);
+        try {
+            Pageable pageable = PageRequest.of(offset / limit, limit);
+            Page<User> userPage = userRepository.findAll(pageable);
+            return userPage.getContent();
+        } catch (Exception e) {
+            throw new ApplicationException("Error while fetching users with offset and limit", e);
+        }
+    }
+
+    public List<User> getCustomersByDescendingOrder(boolean flag) throws ApplicationException {
+        try {
+            return userRepository.findAll(Sort.by(flag == true ? Sort.Direction.DESC : Sort.Direction.ASC));
+        } catch (Exception e) {
+            throw new ApplicationException(Message.User.ERROR_WHILE_GETTING_ALL_CUSTOMERS, e);
+        }
     }
 
     public List<User> getCustomersByPage(int page, int recordsPerPage) throws ApplicationException {
-        int offset = (page - 1) * recordsPerPage;
-        int limit = recordsPerPage;
-        return userDAO.getUsersByPagination(offset, limit);
+        try {
+            Pageable pageable = PageRequest.of(page - 1, recordsPerPage);
+            Page<User> userPage = userRepository.findAll(pageable);
+            return userPage.getContent();
+        } catch (Exception e) {
+            throw new ApplicationException("Error while fetching users by page", e);
+        }
     }
 
     public void addFavouriteUser(int customerId, int driverId) throws ApplicationException {
-        if (!userDAO.isUserExist(customerId)) {
+        if (!userRepository.existsById(customerId)) {
             throw new ApplicationException(Message.User.USER_NOT_FOUND);
         }
-        if (!userDAO.isUserExist(driverId)) {
-            throw new ApplicationException(Message.User.DRIVER_NOT_FOUND);
-        }
-        if (userDAO.isAlreadyFavourite(customerId, driverId)) {
+        User user = userRepository.findById(driverId).orElseThrow(() -> new ApplicationException(Message.User.DRIVER_NOT_FOUND));
+        if (userRepository.isAlreadyFavourite(customerId, driverId)) {
             throw new ApplicationException(Message.User.DRIVER_ALREADY_FAVOURITE);
         }
-        userDAO.addFavouriteUser(customerId, driverId);
+        userRepository.addFavouriteUser(customerId, List.of(user));
     }
 
     public void removeFavouriteDriver(int customerId, int driverId) throws ApplicationException {
-        userDAO.removeFavouriteUser(customerId, driverId);
+        userRepository.removeFavouriteUser(customerId, driverId);
     }
 }

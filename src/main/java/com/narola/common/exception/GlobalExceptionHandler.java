@@ -1,8 +1,7 @@
 package com.narola.common.exception;
 
-import com.krushit.common.Message;
-import com.krushit.dto.ApiResponseDTO;
-import jakarta.mail.MessagingException;
+import com.narola.common.Message;
+import com.narola.dto.ApiResponseDTO;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,11 +39,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponseDTO(ex.getMessage()));
     }
 
-    @ExceptionHandler(MessagingException.class)
+/*    @ExceptionHandler(MessagingException.class)
     public ResponseEntity<?> handleMessagingException(Exception ex) {
         ex.printStackTrace();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponseDTO(Message.GENERIC_ERROR));
-    }
+    }*/
 
 /*    @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
     public ResponseEntity<?> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {

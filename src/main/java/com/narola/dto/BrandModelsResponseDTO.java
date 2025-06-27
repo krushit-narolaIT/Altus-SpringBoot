@@ -1,6 +1,5 @@
 package com.narola.dto;
 
-
 import java.util.List;
 
 public class BrandModelsResponseDTO {

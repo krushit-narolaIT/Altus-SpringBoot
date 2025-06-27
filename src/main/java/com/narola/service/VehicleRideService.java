@@ -1,3 +1,4 @@
+/*
 package com.narola.service;
 
 import com.narola.common.exception.ApplicationException;
@@ -338,3 +339,4 @@ public class VehicleRideService {
         return vehicleDAO.getAllVehicleServices();
     }
 }
+*/

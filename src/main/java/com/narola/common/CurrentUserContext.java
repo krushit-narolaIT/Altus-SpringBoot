@@ -4,8 +4,8 @@ import com.narola.entity.User;
 
 public class CurrentUserContext {
 
-    private static ThreadLocal<String> currentUserId = new ThreadLocal<>();
-    private static ThreadLocal<User> currentUser = new ThreadLocal<>();
+    private static final ThreadLocal<String> currentUserId = new ThreadLocal<>();
+    private static final ThreadLocal<User> currentUser = new ThreadLocal<>();
 
     public static String getCurrentUserId() {
         return currentUserId.get();

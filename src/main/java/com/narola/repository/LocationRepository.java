@@ -26,6 +26,7 @@ public interface LocationRepository extends JpaRepository<Location, Integer> {
             "FROM Location l WHERE l.id = :locationId AND l.isActive = true")
     boolean existsByIdAndIsActiveTrue(Integer locationId);
 
+    @Query("SELECT l FROM Location l ORDER BY l.name")
     List<Location> findAllByOrderByName();
 
     Page<Location> findByIsActive(Boolean active, Pageable pageable);

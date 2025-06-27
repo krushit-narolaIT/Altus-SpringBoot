@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.util.Date;
 
 @Component
-@PropertySource("classpath:application.properties")
+//@PropertySource("classpath:application.properties")
 public class JwtUtils {
 
 /*    @Value("${jwt.secret}")

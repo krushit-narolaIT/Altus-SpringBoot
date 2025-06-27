@@ -11,7 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -27,17 +27,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Component
+@Service
 public class LocationService {
     private static final String GEO_BASE_URL = "https://graphhopper.com/api/1/geocode";
     private static final String ROUTE_BASE_URL = "https://graphhopper.com/api/1/route";
     private static final String API_KEY = "6d96b6fb-13b1-43b6-99ab-2e1d55edd76b";
+
     @Autowired
-    private LocationRepository locationRepository;
+    private final LocationRepository locationRepository;
     @Autowired
     private CommissionSlabRepository commissionSlabRepository;
     @Autowired
     private RestTemplate restTemplate;
+
+    public LocationService(LocationRepository locationRepository) {
+        this.locationRepository = locationRepository;
+    }
 
 /*    public static String getCoordinates(String place) throws Exception {
         String query = URLEncoder.encode(place, StandardCharsets.UTF_8);

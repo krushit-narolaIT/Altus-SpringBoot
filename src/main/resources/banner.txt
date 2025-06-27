@@ -1,0 +1,18 @@
+
+               AAA               lllllll          tttt
+              A:::A              l:::::l       ttt:::t
+             A:::::A             l:::::l       t:::::t
+            A:::::::A            l:::::l       t:::::t
+           A:::::::::A            l::::l ttttttt:::::ttttttt    uuuuuu    uuuuuu      ssssssssss
+          A:::::A:::::A           l::::l t:::::::::::::::::t    u::::u    u::::u    ss::::::::::s
+         A:::::A A:::::A          l::::l t:::::::::::::::::t    u::::u    u::::u  ss:::::::::::::s
+        A:::::A   A:::::A         l::::l tttttt:::::::tttttt    u::::u    u::::u  s::::::ssss:::::s
+       A:::::A     A:::::A        l::::l       t:::::t          u::::u    u::::u   s:::::s  ssssss
+      A:::::AAAAAAAAA:::::A       l::::l       t:::::t          u::::u    u::::u     s::::::s
+     A:::::::::::::::::::::A      l::::l       t:::::t          u::::u    u::::u        s::::::s
+    A:::::AAAAAAAAAAAAA:::::A     l::::l       t:::::t    ttttttu:::::uuuu:::::u  ssssss   s:::::s
+   A:::::A             A:::::A   l::::::l      t::::::tttt:::::tu:::::::::::::::uus:::::ssss::::::s
+  A:::::A               A:::::A  l::::::l      tt::::::::::::::t u:::::::::::::::us::::::::::::::s
+ A:::::A                 A:::::A l::::::l        tt:::::::::::tt  uu::::::::uu:::u s:::::::::::ss
+AAAAAAA                   AAAAAAAllllllll          ttttttttttt      uuuuuuuu  uuuu  sssssssssss
+

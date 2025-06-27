@@ -1,6 +1,6 @@
 package com.narola.dto;
 
-import com.krushit.common.enums.RideStatus;
+import com.narola.common.enums.RideStatus;
 
 public class RideCancellationDetailsDTO {
     private final int rideId;

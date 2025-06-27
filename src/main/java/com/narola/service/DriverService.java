@@ -1,3 +1,4 @@
+/*
 package com.narola.service;
 
 import com.narola.common.Message;
@@ -171,4 +172,4 @@ public class DriverService {
                 .orElseThrow(() -> new DBException(Message.Driver.NO_DRIVERS_FOUND));
         return driver.getDriverId();
     }
-}
+}*/
